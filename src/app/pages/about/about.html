@@ -1,0 +1,39 @@
+<app-navbar></app-navbar>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm p-4">
+        <h2 class="text-center mb-3">About Us</h2>
+        <p class="lead text-center text-muted">
+          This page is public and accessible without login.
+        </p>
+        <hr />
+        <p>
+          Welcome to our application! We aim to provide a seamless and secure
+          experience for our users. Whether you're managing your tasks,
+          exploring features, or just browsing around, our platform ensures a
+          user-friendly and modern interface.
+        </p>
+
+        <p>
+          This app was built using <strong>Angular</strong> and
+          <strong>Bootstrap</strong> to ensure a responsive and smooth
+          experience across devices. We continuously improve our application
+          based on your feedback.
+        </p>
+
+        <p>
+          You can register, sign in, and access your personal dashboard. But
+          even without logging in, feel free to explore public pages like this
+          one.
+        </p>
+
+        <div class="text-center mt-4">
+          <a [routerLink]="['/sign-up']" *ngIf="!isLoggedIn" class="btn btn-primary me-2">Get Started</a>
+          <a [routerLink]="['/dashboard']" class="btn btn-outline-secondary">Go to Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
