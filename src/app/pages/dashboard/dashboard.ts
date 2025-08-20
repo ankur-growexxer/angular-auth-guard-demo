@@ -20,6 +20,13 @@ export class DashboardComponent implements OnInit {
   selectedFile!: File;
   uploadProgress: number = -1;
 
+  currentPage: number = 1;
+  itemsPerPage: number = 5;
+  totalPages: number = 0;
+
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
   @ViewChild('productForm') productForm!: NgForm;
   @ViewChild('fileInput') fileInput!: any;
 
@@ -34,7 +41,10 @@ export class DashboardComponent implements OnInit {
   }
 
   loadProducts() {
-    this.productService.getAll().subscribe(data => this.products = data);
+    this.productService.getAll().subscribe(data => {
+      this.products = data;
+      this.totalPages = Math.ceil(this.products.length / this.itemsPerPage);
+    });
   }
 
   onFileSelected(event: any) {
@@ -110,14 +120,64 @@ export class DashboardComponent implements OnInit {
   }
 
   filteredProducts() {
-    if (!this.searchText.trim()) {
-      return this.products;
+    let filtered = this.products;
+
+    // 🔍 Search
+    if (this.searchText.trim()) {
+      const lowerSearch = this.searchText.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(lowerSearch) ||
+        p.price.toString().includes(lowerSearch)
+      );
     }
 
-    const lowerSearch = this.searchText.toLowerCase();
-    return this.products.filter(p =>
-      p.name.toLowerCase().includes(lowerSearch) ||
-      p.price.toString().includes(lowerSearch)
-    );
+    // Reset total pages after filtering
+    this.totalPages = Math.ceil(filtered.length / this.itemsPerPage);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = 1;
+    }
+
+    // ↕ Sorting
+    if (this.sortColumn) {
+      filtered = filtered.sort((a, b) => {
+        let valA = a[this.sortColumn];
+        let valB = b[this.sortColumn];
+
+        if (this.sortColumn === 'price') {
+          valA = Number(valA);
+          valB = Number(valB);
+        } else {
+          valA = valA?.toString().toLowerCase();
+          valB = valB?.toString().toLowerCase();
+        }
+
+        if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }
+
+  paginatedProducts() {
+    const filtered = this.filteredProducts();
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return filtered.slice(start, start + this.itemsPerPage);
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  sortData(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
   }
 }

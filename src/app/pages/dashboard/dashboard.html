@@ -35,7 +35,6 @@
       </div>
     </div>
 
-    <!-- File Upload -->
     <div class="col-md-4">
       <input
         type="file"
@@ -75,14 +74,24 @@
 <table class="table table-bordered table-striped">
   <thead class="table-dark">
     <tr>
-      <th>Name</th>
-      <th>Price</th>
+      <th (click)="sortData('name')" style="cursor:pointer">
+        Name
+        <span *ngIf="sortColumn === 'name'">
+          {{ sortDirection === 'asc' ? '▲' : '▼' }}
+        </span>
+      </th>
+      <th (click)="sortData('price')" style="cursor:pointer">
+        Price
+        <span *ngIf="sortColumn === 'price'">
+          {{ sortDirection === 'asc' ? '▲' : '▼' }}
+        </span>
+      </th>
       <th>File</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let p of filteredProducts()">
+    <tr *ngFor="let p of paginatedProducts()">
       <ng-container *ngIf="editingProduct?.id !== p.id; else editRow">
         <td>{{ p.name }}</td>
         <td>{{ p.price }}</td>
@@ -126,7 +135,7 @@
           <span *ngIf="editPrice.errors?.['min']">Price must be greater than 0.</span>
         </div>
       </td>
-      <td>
+      <td colspan="2">
         <button
           class="btn btn-sm btn-success me-1"
           (click)="updateProduct()"
@@ -139,3 +148,23 @@
     </ng-template>
   </tbody>
 </table>
+
+<nav *ngIf="totalPages > 1">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" [class.disabled]="currentPage === 1">
+      <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
+    </li>
+
+    <li
+      class="page-item"
+      *ngFor="let page of [].constructor(totalPages); let i = index"
+      [class.active]="currentPage === i + 1"
+    >
+      <a class="page-link" (click)="changePage(i + 1)">{{ i + 1 }}</a>
+    </li>
+
+    <li class="page-item" [class.disabled]="currentPage === totalPages">
+      <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
+    </li>
+  </ul>
+</nav>
