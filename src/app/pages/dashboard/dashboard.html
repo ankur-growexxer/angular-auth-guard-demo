@@ -2,7 +2,7 @@
 <h2 class="mt-3">Product Management</h2>
 <form #productForm="ngForm" (ngSubmit)="addProduct()" novalidate>
   <div class="mb-3 row g-2">
-    <div class="col-md-4">
+    <div class="col-md-3">
       <input
         class="form-control"
         name="name"
@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-3">
       <input
         class="form-control"
         name="price"
@@ -35,11 +35,24 @@
       </div>
     </div>
 
+    <!-- File Upload -->
+    <div class="col-md-4">
+      <input
+        type="file"
+        #fileInput
+        (change)="onFileSelected($event)"
+        class="form-control"
+      />
+      <div *ngIf="uploadProgress >= 0" class="small text-primary mt-1">
+        Upload Progress: {{uploadProgress}}%
+      </div>
+    </div>
+
     <div class="col-md-2">
       <button
         type="submit"
         class="btn btn-primary w-100"
-        [disabled]="productForm.invalid"
+        [disabled]="productForm.invalid || !selectedFile"
       >
         Add
       </button>
@@ -64,6 +77,7 @@
     <tr>
       <th>Name</th>
       <th>Price</th>
+      <th>File</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -72,6 +86,9 @@
       <ng-container *ngIf="editingProduct?.id !== p.id; else editRow">
         <td>{{ p.name }}</td>
         <td>{{ p.price }}</td>
+        <td>
+          <a *ngIf="p.file" [href]="'http://localhost:8000/storage/' + p.file" target="_blank">View File</a>
+        </td>
         <td>
           <button class="btn btn-sm btn-warning me-1" (click)="editProduct(p)">Edit</button>
           <button class="btn btn-sm btn-danger" (click)="deleteProduct(p.id)">Delete</button>

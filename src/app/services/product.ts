@@ -7,29 +7,19 @@ export class ProductService {
   private http = inject(HttpClient);
   private baseUrl = 'http://localhost:8000/api/products';
 
-  private getHeaders() {
-    const token = localStorage.getItem('auth_token');
-    return {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      })
-    };
-  }
-
   getAll(): Observable<any> {
-    return this.http.get(this.baseUrl, this.getHeaders());
+    return this.http.get(this.baseUrl);
   }
 
   create(product: any): Observable<any> {
-    return this.http.post(this.baseUrl, product, this.getHeaders());
+    return this.http.post(this.baseUrl, product);
   }
 
   update(id: number, product: any): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${id}`, product, this.getHeaders());
+    return this.http.put(`${this.baseUrl}/${id}`, product);
   }
 
   delete(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`, this.getHeaders());
+    return this.http.delete(`${this.baseUrl}/${id}`);
   }
 }

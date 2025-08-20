@@ -4,6 +4,7 @@ import { NavbarComponent } from '../../shared/navbar/navbar';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ProductService } from '../../services/product';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,12 +17,16 @@ export class DashboardComponent implements OnInit {
   newProduct = { name: '', price: '' };
   editingProduct: any = null;
   searchText: string = '';
+  selectedFile!: File;
+  uploadProgress: number = -1;
 
   @ViewChild('productForm') productForm!: NgForm;
+  @ViewChild('fileInput') fileInput!: any;
 
   constructor(
     public auth: AuthService,
-    private productService: ProductService
+    private productService: ProductService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
@@ -32,20 +37,56 @@ export class DashboardComponent implements OnInit {
     this.productService.getAll().subscribe(data => this.products = data);
   }
 
-  addProduct() {
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
+  }
+
+  async addProduct() {
     if (!this.newProduct.name.trim() || !this.newProduct.price || +this.newProduct.price <= 0) {
       return;
     }
 
-    this.productService.create(this.newProduct).subscribe(() => {
-      this.newProduct = { name: '', price: '' };
+    const product: any = await this.productService.create(this.newProduct).toPromise();
 
-      if (this.productForm) {
-        this.productForm.resetForm();
-      }
+    if (this.selectedFile) {
+      await this.uploadFileInChunks(product.id);
+    }
 
-      this.loadProducts();
-    });
+    this.newProduct = { name: '', price: '' };
+    this.selectedFile = null!;
+    this.uploadProgress = -1;
+
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+
+    if (this.productForm) {
+      this.productForm.resetForm();
+    }
+
+    this.loadProducts();
+  }
+
+  async uploadFileInChunks(productId: number) {
+    const chunkSize = 0.5 * 1024 * 1024;
+    const totalChunks = Math.ceil(this.selectedFile.size / chunkSize);
+
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+      const start = chunkIndex * chunkSize;
+      const end = Math.min(this.selectedFile.size, start + chunkSize);
+      const chunk = this.selectedFile.slice(start, end);
+
+      const formData = new FormData();
+      formData.append('file', chunk);
+      formData.append('chunkIndex', chunkIndex.toString());
+      formData.append('totalChunks', totalChunks.toString());
+      formData.append('fileName', this.selectedFile.name);
+      formData.append('product_id', productId.toString());
+
+      await this.http.post('http://localhost:8000/api/upload-chunk', formData).toPromise();
+
+      this.uploadProgress = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+    }
   }
 
   editProduct(product: any) {
